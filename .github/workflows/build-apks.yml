@@ -1,0 +1,35 @@
+name: Build Z-Solution APKs
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install SDK
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build all apps
+        run: gradle --no-daemon :parent:assembleDebug :admin:assembleDebug :teacher:assembleDebug
+      - name: Collect APKs
+        run: |
+          mkdir -p apks
+          cp parent/build/outputs/apk/debug/parent-debug.apk apks/Z-Solution-Parent.apk
+          cp admin/build/outputs/apk/debug/admin-debug.apk apks/Z-Solution-Admin.apk
+          cp teacher/build/outputs/apk/debug/teacher-debug.apk apks/Z-Solution-Teacher.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Z-Solution-3-Android-APKs
+          path: apks/*.apk
+          retention-days: 30
