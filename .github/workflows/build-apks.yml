@@ -15,9 +15,13 @@ jobs:
           distribution: temurin
           java-version: '17'
       - name: Prepare Android SDK
+        shell: bash
         run: |
-          yes | sdkmanager --licenses >/dev/null || true
-          sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -1)"
+          echo "Using $SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" "platforms;android-35" "build-tools;35.0.0" "platform-tools"
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
@@ -29,6 +33,7 @@ jobs:
           cp parent/build/outputs/apk/debug/parent-debug.apk apks/Z-Solution-Parent.apk
           cp admin/build/outputs/apk/debug/admin-debug.apk apks/Z-Solution-Admin.apk
           cp teacher/build/outputs/apk/debug/teacher-debug.apk apks/Z-Solution-Teacher.apk
+          ls -lh apks
       - uses: actions/upload-artifact@v4
         with:
           name: Z-Solution-3-Android-APKs
